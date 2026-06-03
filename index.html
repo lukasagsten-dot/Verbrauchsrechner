@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpina Farb-Verbrauchsrechner (CI Edition)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Customizing Tailwind with official Alpina CI color palette -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        alpina: {
+                            blue: {
+                                DEFAULT: '#003B7E',
+                                dark: '#002554',
+                                light: '#1F5FA6',
+                                bg: '#F4F7FB'
+                            },
+                            red: {
+                                DEFAULT: '#E30613',
+                                hover: '#B8040E',
+                                light: '#FDF2F2'
+                            },
+                            yellow: {
+                                DEFAULT: '#F0A360',
+                                dark: '#D48643',
+                                light: '#FEF6EE'
+                            }
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-[#F8FAFC] text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Brand Header -->
+    <header class="bg-alpina-blue-dark text-white sticky top-0 z-30 shadow-md border-b-4 border-alpina-red">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <!-- Stilisierte weiße Alpina-Katze als Marken-Symbol -->
+                <div class="bg-white text-alpina-blue-dark p-2 rounded-xl shadow-inner flex items-center justify-center">
+                    <svg class="w-8 h-8 fill-current" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M430.2 31.8c-12.8-13.4-33.8-14.2-47.5-1.8L316.5 90c-17.7-4.1-36.2-6.3-55.2-6.3s-37.5 2.2-55.2 6.3L139.3 30c-13.7-12.4-34.7-11.6-47.5 1.8-12.8 13.4-12.1 34.9 1.6 47.4l41.6 38c-35.3 34.6-56.9 82.5-56.9 135.5 0 68 35.8 128.1 91 163.6l-13.7 34.2c-5.6 14 1.1 29.8 15 35.5s29.8-1.1 35.5-15l14.4-36.1c11.5 3 23.4 4.5 35.5 4.5s24-.1 35.5-4.5l14.4 36.1c5.6 14 21.5 20.7 35.5 15s20.7-21.5 15-35.5l-13.7-34.2c55.2-35.5 91-95.6 91-163.6 0-53-21.6-100.9-56.9-135.5l41.6-38c13.7-12.5 14.4-34 1.6-47.4z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-2xl tracking-tight">Alpina <span class="text-alpina-yellow">Rechner</span></h1>
+                    <p class="text-xs text-slate-300 font-medium tracking-wide">Offizieller CI-Verbrauchsrechner für Heimwerker</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-xs font-semibold uppercase bg-alpina-blue/50 px-4 py-2 rounded-full border border-alpina-blue-light/30">
+                <span class="inline-block w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping"></span>
+                Original Alpina Deckkraft garantiert
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Linker Bereich: Eingabeformulare -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- Schritt 1: Raummaße -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-alpina-red"></div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="w-8 h-8 rounded-full bg-alpina-red text-white flex items-center justify-center font-bold text-sm">1</span>
+                        <h2 class="text-lg font-bold text-alpina-blue-dark">Raummaße & Fläche angeben</h2>
+                    </div>
+
+                    <!-- Modus-Umschalter -->
+                    <div class="flex bg-slate-100 p-1 rounded-xl mb-6">
+                        <button id="btn-mode-dim" onclick="setCalcMode('dimensions')" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-white text-alpina-blue shadow-sm">
+                            <i class="fa-solid fa-ruler-combined mr-2 text-alpina-red"></i>Wandmaße eingeben
+                        </button>
+                        <button id="btn-mode-area" onclick="setCalcMode('direct')" class="flex-1 py-2 text-sm font-bold rounded-lg transition-all text-slate-600 hover:text-alpina-blue">
+                            <i class="fa-solid fa-vector-square mr-2"></i>Direkte m² Angabe
+                        </button>
+                    </div>
+
+                    <!-- Eingabefelder für Wandmaße -->
+                    <div id="wrapper-dimensions" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Raumlänge (m)</label>
+                                <div class="relative">
+                                    <input type="number" id="input-length" value="4.5" min="0" step="0.1" oninput="calculatePaint()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pl-10 focus:ring-2 focus:ring-alpina-blue focus:border-alpina-blue focus:bg-white outline-none transition-all">
+                                    <span class="absolute left-3.5 top-3.5 text-slate-400"><i class="fa-solid fa-arrows-left-right text-sm"></i></span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Raumbreite (m)</label>
+                                <div class="relative">
+                                    <input type="number" id="input-width" value="4.0" min="0" step="0.1" oninput="calculatePaint()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pl-10 focus:ring-2 focus:ring-alpina-blue focus:border-alpina-blue focus:bg-white outline-none transition-all">
+                                    <span class="absolute left-3.5 top-3.5 text-slate-400"><i class="fa-solid fa-arrows-up-down text-sm"></i></span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Raumhöhe (m)</label>
+                                <div class="relative">
+                                    <input type="number" id="input-height" value="2.5" min="0" step="0.1" oninput="calculatePaint()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pl-10 focus:ring-2 focus:ring-alpina-blue focus:border-alpina-blue focus:bg-white outline-none transition-all">
+                                    <span class="absolute left-3.5 top-3.5 text-slate-400"><i class="fa-solid fa-arrows-up-to-line text-sm"></i></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Decke streichen Checkbox -->
+                        <label class="flex items-center gap-3 bg-alpina-blue-bg hover:bg-slate-100 p-4 rounded-xl cursor-pointer transition-colors border border-dashed border-alpina-blue-light/20 mt-2">
+                            <input type="checkbox" id="input-ceiling" checked onchange="calculatePaint()" class="w-5 h-5 rounded border-slate-300 text-alpina-blue focus:ring-alpina-blue">
+                            <div>
+                                <span class="block text-sm font-bold text-alpina-blue-dark">Decke ebenfalls streichen</span>
+                                <span class="block text-xs text-slate-500">Deckenflächen werden zum Farbergebnis addiert.</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Eingabefeld für Direkte Quadratmeter -->
+                    <div id="wrapper-direct" class="hidden">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Gesamte Wand- & Deckenfläche (m²)</label>
+                            <div class="relative">
+                                <input type="number" id="input-direct-area" value="50" min="0" step="1" oninput="calculatePaint()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pl-10 focus:ring-2 focus:ring-alpina-blue focus:border-alpina-blue focus:bg-white outline-none transition-all">
+                                <span class="absolute left-3.5 top-3.5 text-slate-400"><i class="fa-solid fa-square text-sm"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schritt 2: Abzüge (Fenster & Türen) -->
+                <div id="section-deductions" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-alpina-red"></div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="w-8 h-8 rounded-full bg-alpina-red text-white flex items-center justify-center font-bold text-sm">2</span>
+                        <h2 class="text-lg font-bold text-alpina-blue-dark">Abzüge (Fenster & Türen)</h2>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-4">Flächen, die ausgespart werden sollen, um keine Farbe zu verschwenden:</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Anzahl Fenster (je ~1,5 m²)</label>
+                            <div class="relative">
+                                <input type="number" id="input-windows" value="2" min="0" step="1" oninput="calculatePaint()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pl-10 focus:ring-2 focus:ring-alpina-blue focus:border-alpina-blue focus:bg-white outline-none transition-all">
+                                <span class="absolute left-3.5 top-3.5 text-slate-400"><i class="fa-solid fa-window-maximize text-sm"></i></span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Anzahl Standardtüren (je ~2,0 m²)</label>
+                            <div class="relative">
+                                <input type="number" id="input-doors" value="1" min="0" step="1" oninput="calculatePaint()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 pl-10 focus:ring-2 focus:ring-alpina-blue focus:border-alpina-blue focus:bg-white outline-none transition-all">
+                                <span class="absolute left-3.5 top-3.5 text-slate-400"><i class="fa-solid fa-door-open text-sm"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schritt 3: Alpina Farbauswahl & Anstriche -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-alpina-red"></div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="w-8 h-8 rounded-full bg-alpina-red text-white flex items-center justify-center font-bold text-sm">3</span>
+                        <h2 class="text-lg font-bold text-alpina-blue-dark">Farbserie & Anstrich wählen</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Farbserie -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Gewünschte Alpina-Serie</label>
+                            <select id="select-paint" onchange="calculatePaint()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-alpina-blue focus:border-alpina-blue focus:bg-white outline-none transition-all font-bold text-alpina-blue-dark">
+                                <option value="original" selected>Alpinaweiß - Das Original (ca. 8,5 m²/L)</option>
+                                <option value="feine-farben">Alpina Feine Farben (ca. 9,0 m²/L)</option>
+                                <option value="buntfarbe">Alpina Color Buntfarbe (ca. 6,5 m²/L)</option>
+                                <option value="innenfarbe">Alpina Raumfarbe / Wandfarbe (ca. 6,0 m²/L)</option>
+                                <option value="anti-schimmel">Alpina Anti-Schimmel (ca. 6,0 m²/L)</option>
+                            </select>
+                        </div>
+
+                        <!-- Anstriche -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Anzahl der Anstriche</label>
+                            <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
+                                <button id="btn-coats-1" onclick="setCoats(1)" class="py-2 text-sm font-bold rounded-lg transition-all bg-white text-alpina-blue shadow-sm">1 Anstrich</button>
+                                <button id="btn-coats-2" onclick="setCoats(2)" class="py-2 text-sm font-bold rounded-lg transition-all text-slate-600 hover:text-alpina-blue">2 Anstriche</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Puffer-Option -->
+                    <label class="flex items-center gap-3 mt-4 text-sm font-semibold text-slate-600 cursor-pointer">
+                        <input type="checkbox" id="input-buffer" checked onchange="calculatePaint()" class="w-4 h-4 rounded border-slate-300 text-alpina-red focus:ring-alpina-red">
+                        <span>10% Sicherheitsreserve für raue oder stark saugende Untergründe</span>
+                    </label>
+                </div>
+
+            </div>
+
+            <!-- Rechter Bereich: Ergebnisse (Sticky) -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="sticky top-24 space-y-6">
+                    
+                    <!-- Ergebniskarte mit elegantem Alpina-CI-Branding -->
+                    <div class="bg-gradient-to-br from-alpina-blue-dark to-alpina-blue text-white p-6 rounded-2xl shadow-xl border border-alpina-blue-light/20 overflow-hidden relative">
+                        <!-- Diagonal rot-weiße CI-Streifen im Hintergrund -->
+                        <div class="absolute -right-16 -top-16 w-32 h-32 bg-alpina-red opacity-30 blur-2xl rounded-full"></div>
+                        <div class="absolute -left-16 -bottom-16 w-32 h-32 bg-alpina-yellow opacity-20 blur-2xl rounded-full"></div>
+
+                        <div class="flex justify-between items-start mb-4 relative z-10">
+                            <div>
+                                <h3 class="text-xs font-bold text-alpina-yellow uppercase tracking-wider mb-1">Empfehlung des Herstellers</h3>
+                                <h4 class="text-2xl font-extrabold tracking-tight">Dein Farbbedarf</h4>
+                            </div>
+                            <!-- Kleine Katze als Gütesiegel -->
+                            <div class="bg-white/10 p-2 rounded-lg border border-white/10 flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white fill-current" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M430.2 31.8c-12.8-13.4-33.8-14.2-47.5-1.8L316.5 90c-17.7-4.1-36.2-6.3-55.2-6.3s-37.5 2.2-55.2 6.3L139.3 30c-13.7-12.4-34.7-11.6-47.5 1.8-12.8 13.4-12.1 34.9 1.6 47.4l41.6 38c-35.3 34.6-56.9 82.5-56.9 135.5 0 68 35.8 128.1 91 163.6l-13.7 34.2c-5.6 14 1.1 29.8 15 35.5s29.8-1.1 35.5-15l14.4-36.1c11.5 3 23.4 4.5 35.5 4.5s24-.1 35.5-4.5l14.4 36.1c5.6 14 21.5 20.7 35.5 15s20.7-21.5 15-35.5l-13.7-34.2c55.2-35.5 91-95.6 91-163.6 0-53-21.6-100.9-56.9-135.5l41.6-38c13.7-12.5 14.4-34 1.6-47.4z"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Wichtigste Zahl -->
+                        <div class="mb-6 relative z-10">
+                            <span class="text-xs text-slate-300 block font-semibold uppercase tracking-wider">Errechnete Menge:</span>
+                            <div class="flex items-baseline gap-2">
+                                <span id="res-liters" class="text-5xl font-black text-white">5.5</span>
+                                <span class="text-2xl font-bold text-alpina-yellow">Liter</span>
+                            </div>
+                        </div>
+
+                        <!-- Zwischenwerte -->
+                        <div class="border-t border-white/10 pt-4 space-y-2.5 text-sm relative z-10">
+                            <div class="flex justify-between">
+                                <span class="text-slate-300">Netto-Fläche:</span>
+                                <span id="res-net-area" class="font-bold text-white">0 m²</span>
+                            </div>
+                            <div id="row-ceiling-details" class="flex justify-between">
+                                <span class="text-slate-300">Davon Deckenfläche:</span>
+                                <span id="res-ceiling-area" class="font-bold text-white">0 m²</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-300">Fläche x Anstriche:</span>
+                                <span id="res-total-area" class="font-bold text-white">0 m²</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-300">Ergiebigkeit der Farbe:</span>
+                                <span id="res-efficiency" class="font-bold text-white">8.5 m² / L</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Eimer-Empfehlungs-Karte -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1.5 h-full bg-alpina-blue"></div>
+                        <h3 class="text-sm font-extrabold text-alpina-blue-dark mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-bucket text-alpina-red"></i> Offizielle Eimer-Empfehlung
+                        </h3>
+                        
+                        <p class="text-xs text-slate-500 mb-4">Kombination aus handelsüblichen Alpina-Eimern für minimalen Überschuss:</p>
+                        
+                        <!-- Liste der Eimer -->
+                        <div id="container-buckets" class="space-y-3">
+                            <!-- Dynamisch befüllt -->
+                        </div>
+
+                        <!-- Maskottchen-Tipp -->
+                        <div class="bg-alpina-blue-bg border border-alpina-blue-light/10 rounded-xl p-4 mt-4 flex items-start gap-3">
+                            <span class="text-2xl mt-0.5">🐱</span>
+                            <div class="text-xs text-alpina-blue-dark leading-relaxed">
+                                <strong>Die weiße Katze empfiehlt:</strong> Stark sandende oder saugende Wände vor dem Streichen immer mit einem geeigneten Tiefgrund behandeln, um Fleckenbildung zu vermeiden.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-alpina-blue-dark text-slate-400 py-8 border-t-2 border-alpina-red mt-12">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+            <p>&copy; 2026 Farb-Verbrauchsrechner. Keine offizielle Alpina-App. Berechnungen basieren auf lizenzierten Hersteller-Durchschnittswerten.</p>
+            <div class="flex gap-4">
+                <a href="#" class="hover:underline">Datenschutz</a>
+                <a href="#" class="hover:underline">Impressum</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Logik zur Berechnung -->
+    <script>
+        // Anstrich-Zustand (1 oder 2)
+        let activeCoats = 1;
+        // Eingabe-Modus ('dimensions' oder 'direct')
+        let activeMode = 'dimensions';
+
+        // Offizielle Alpina-Farbserien mit deren m²-Ergiebigkeit pro Liter laut Datenblatt
+        const PAINT_SERIES = {
+            'original': {
+                name: "Alpinaweiß - Das Original",
+                yieldPerLiter: 8.5
+            },
+            'feine-farben': {
+                name: "Alpina Feine Farben",
+                yieldPerLiter: 9.0
+            },
+            'buntfarbe': {
+                name: "Alpina Color Buntfarbe",
+                yieldPerLiter: 6.5
+            },
+            'innenfarbe': {
+                name: "Alpina Raumfarbe",
+                yieldPerLiter: 6.0
+            },
+            'anti-schimmel': {
+                name: "Alpina Anti-Schimmel",
+                yieldPerLiter: 6.0
+            }
+        };
+
+        // UI-Umschaltung für die Anstriche
+        function setCoats(coats) {
+            activeCoats = coats;
+            const btn1 = document.getElementById('btn-coats-1');
+            const btn2 = document.getElementById('btn-coats-2');
+            
+            if (coats === 1) {
+                btn1.className = "py-2 text-sm font-bold rounded-lg transition-all bg-white text-alpina-blue shadow-sm border border-slate-200";
+                btn2.className = "py-2 text-sm font-bold rounded-lg transition-all text-slate-600 hover:text-alpina-blue";
+            } else {
+                btn2.className = "py-2 text-sm font-bold rounded-lg transition-all bg-white text-alpina-blue shadow-sm border border-slate-200";
+                btn1.className = "py-2 text-sm font-bold rounded-lg transition-all text-slate-600 hover:text-alpina-blue";
+            }
+            calculatePaint();
+        }
+
+        // UI-Umschaltung für den Eingabe-Modus
+        function setCalcMode(mode) {
+            activeMode = mode;
+            const btnDim = document.getElementById('btn-mode-dim');
+            const btnArea = document.getElementById('btn-mode-area');
+            const wrapDim = document.getElementById('wrapper-dimensions');
+            const wrapArea = document.getElementById('wrapper-direct');
+            const sectionDeductions = document.getElementById('section-deductions');
+
+            if (mode === 'dimensions') {
+                btnDim.className = "flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-white text-alpina-blue shadow-sm";
+                btnArea.className = "flex-1 py-2 text-sm font-bold rounded-lg transition-all text-slate-600 hover:text-alpina-blue";
+                wrapDim.classList.remove('hidden');
+                wrapArea.classList.add('hidden');
+                sectionDeductions.classList.remove('hidden');
+            } else {
+                btnArea.className = "flex-1 py-2 text-sm font-bold rounded-lg transition-all bg-white text-alpina-blue shadow-sm";
+                btnDim.className = "flex-1 py-2 text-sm font-bold rounded-lg transition-all text-slate-600 hover:text-alpina-blue";
+                wrapArea.classList.remove('hidden');
+                wrapDim.classList.add('hidden');
+                sectionDeductions.classList.add('hidden');
+            }
+            calculatePaint();
+        }
+
+        // Hauptberechnung
+        function calculatePaint() {
+            let totalWallArea = 0;
+            let ceilingArea = 0;
+            let deductions = 0;
+
+            if (activeMode === 'dimensions') {
+                const length = parseFloat(document.getElementById('input-length').value) || 0;
+                const width = parseFloat(document.getElementById('input-width').value) || 0;
+                const height = parseFloat(document.getElementById('input-height').value) || 0;
+                const paintCeiling = document.getElementById('input-ceiling').checked;
+
+                // Berechnung der reinen Wände: 2 * (Länge + Breite) * Höhe
+                totalWallArea = 2 * (length + width) * height;
+
+                if (paintCeiling) {
+                    ceilingArea = length * width;
+                    totalWallArea += ceilingArea;
+                    document.getElementById('row-ceiling-details').classList.remove('hidden');
+                } else {
+                    document.getElementById('row-ceiling-details').classList.add('hidden');
+                }
+
+                // Abzüge berechnen (Fenster & Türen)
+                const windows = parseInt(document.getElementById('input-windows').value) || 0;
+                const doors = parseInt(document.getElementById('input-doors').value) || 0;
+                deductions = (windows * 1.5) + (doors * 2.0);
+            } else {
+                totalWallArea = parseFloat(document.getElementById('input-direct-area').value) || 0;
+                document.getElementById('row-ceiling-details').classList.add('hidden');
+            }
+
+            // Nettofläche berechnen (Darf nicht negativ sein)
+            const netArea = Math.max(0, totalWallArea - deductions);
+            
+            // Gesamtfläche mal Anzahl der gewünschten Anstriche
+            const totalAreaToPaint = netArea * activeCoats;
+
+            // Gewählte Farbserie und deren Ergiebigkeit
+            const selectedPaintKey = document.getElementById('select-paint').value;
+            const yieldFactor = PAINT_SERIES[selectedPaintKey].yieldPerLiter;
+
+            // Berechnete Literzahl
+            let litersNeeded = totalAreaToPaint / yieldFactor;
+
+            // Optionaler 10% Puffer
+            const addBuffer = document.getElementById('input-buffer').checked;
+            if (addBuffer && litersNeeded > 0) {
+                litersNeeded *= 1.10;
+            }
+
+            // Anzeige runden auf 2 Dezimalstellen
+            const finalLiters = Math.round(litersNeeded * 100) / 100;
+
+            // Werte in die Ergebniskarte schreiben
+            document.getElementById('res-liters').innerText = finalLiters.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+            document.getElementById('res-net-area').innerText = `${netArea.toLocaleString('de-DE', { maximumFractionDigits: 1 })} m²`;
+            document.getElementById('res-ceiling-area').innerText = `${ceilingArea.toLocaleString('de-DE', { maximumFractionDigits: 1 })} m²`;
+            document.getElementById('res-total-area').innerText = `${totalAreaToPaint.toLocaleString('de-DE', { maximumFractionDigits: 1 })} m²`;
+            document.getElementById('res-efficiency').innerText = `${yieldFactor.toFixed(1)} m² / L`;
+
+            // Empfohlene Eimer berechnen
+            suggestBuckets(finalLiters);
+        }
+
+        // Berechnung der besten Eimer-Kombination
+        // Handelsübliche Größen bei Alpina: 10 Liter, 5 Liter, 2,5 Liter, 1 Liter
+        function suggestBuckets(liters) {
+            const container = document.getElementById('container-buckets');
+            container.innerHTML = ''; // Vorherige Empfehlung leeren
+
+            if (liters <= 0) {
+                container.innerHTML = `<div class="text-slate-400 text-xs text-center py-4">Gib Raummaße an, um eine Eimer-Empfehlung zu erhalten.</div>`;
+                return;
+            }
+
+            // Verfügbare Eimergrößen (absteigend sortiert)
+            const bucketSizes = [10, 5, 2.5, 1];
+            let remainingLiters = liters;
+            let suggestion = {};
+
+            // Initialisiere die Vorschlagsstruktur
+            bucketSizes.forEach(size => suggestion[size] = 0);
+
+            // Gieriger Algorithmus zur Aufteilung (Greedy Algorithm) mit kaufmännischer Aufrundung für den letzten Schritt
+            for (let i = 0; i < bucketSizes.length; i++) {
+                const size = bucketSizes[i];
+                if (remainingLiters >= size) {
+                    const count = Math.floor(remainingLiters / size);
+                    suggestion[size] += count;
+                    remainingLiters -= count * size;
+                }
+            }
+
+            // Wenn nach dem Durchlauf noch Reste übrig sind, müssen wir die nächstbeste Eimergröße zum Aufrunden wählen
+            if (remainingLiters > 0) {
+                if (remainingLiters <= 1) {
+                    suggestion[1] += 1;
+                } else if (remainingLiters <= 2.5) {
+                    suggestion[2.5] += 1;
+                } else if (remainingLiters <= 5) {
+                    suggestion[5] += 1;
+                } else {
+                    suggestion[10] += 1;
+                }
+            }
+
+            // Rendere die Eimer-Vorschläge
+            let totalPurchasedVolume = 0;
+            let listHTML = '';
+
+            Object.keys(suggestion).reverse().forEach(sizeStr => {
+                const size = parseFloat(sizeStr);
+                const count = suggestion[size];
+                if (count > 0) {
+                    totalPurchasedVolume += (size * count);
+                    
+                    listHTML += `
+                        <div class="flex items-center justify-between p-3 bg-slate-50 hover:bg-alpina-blue-bg rounded-xl border border-slate-150 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-alpina-blue-bg text-alpina-blue flex items-center justify-center font-bold text-sm">
+                                    <i class="fa-solid fa-bucket text-lg text-alpina-red"></i>
+                                </div>
+                                <div>
+                                    <span class="block font-bold text-slate-800">${size.toLocaleString('de-DE')} Liter Eimer</span>
+                                    <span class="block text-xs text-slate-500">Alpina Originalgebinde</span>
+                                </div>
+                            </div>
+                            <div class="bg-alpina-blue text-white font-extrabold px-3 py-1 rounded-lg text-sm">
+                                ${count}x
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            container.innerHTML = listHTML;
+
+            // Zeige Restmenge an, wenn nennenswert vorhanden
+            const waste = Math.round((totalPurchasedVolume - liters) * 100) / 100;
+            if (waste > 0 && totalPurchasedVolume > 0) {
+                container.innerHTML += `
+                    <div class="text-[11px] text-alpina-yellow-dark font-semibold flex items-center gap-1.5 mt-2 px-1">
+                        <i class="fa-solid fa-triangle-exclamation text-alpina-red"></i>
+                        Voraussichtliche Restmenge im Eimer: ca. ${waste.toLocaleString('de-DE')} Liter.
+                    </div>
+                `;
+            }
+        }
+
+        // Initiale Berechnung beim Start
+        window.onload = function() {
+            calculatePaint();
+        };
+    </script>
+</body>
+</html>
